@@ -1,0 +1,291 @@
+---
+title: "Accessibility Case Study: Boston Landing"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+options(java.parameters = '-Xmx3G')
+
+library(tidyverse)
+library(here)
+library(tidytransit)
+library(sf)
+library(r5r)
+library(sfheaders)
+library(tigris)
+library(knitr)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+Boston Landing^[This information in this case study is for teaching purposes and I do not guarantee its accuracy.] is a \$500 million-dollar development by NB Development
+group for New Balance Athletics. It comprises six properties located
+at 40-180 Guest Street in Boston, Massachusetts. These are listed in Table 1.
+
+```{r, echo=FALSE}
+tibble(Address = c("40 Guest St",
+                   "60 Guest St",
+                   "80 Guest St",
+                   "100 Guest St",
+                   "125 Guest St",
+                   "180 Guest St"),
+       `Land use` = c("Boston Celtics Practice Facility and Lab Space",
+                    "Office/Lab Building",
+                    "Warrior Ice Arena and Office/Lab Building",
+                    "New Balance Athletics Inc. World Headquarters",
+                    "Lantera Residential",
+                    "Hotel"),
+       `Date opened` = c("2017",
+                           "Future",
+                           "2016",
+                           "2013",
+                           "2018",
+                           "Future")) |>
+  kable(caption = "Properties included in the Boston Landing development")
+
+```
+
+
+In connection with the development, New Balance Athletics also 
+funded the planning and construction of the \$20 million Boston Landing commuter rail station located adjacent to the site. The station opened in 2017.
+
+Figure 1 shows the locations of the properties and the commuter rail station.
+
+```{r make-site-map, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+boundaries2023 <- here("1-accessibility-boston-landing",
+                       "data",
+                       "site-parcels.geojson")|>
+  st_read() 
+
+station <- here("1-accessibility-boston-landing",
+                "data",
+                "BL station bound.kml") |>
+  st_read() |>
+  rename(MAP_PAR_ID = Name) |>
+  select(MAP_PAR_ID) |>
+  st_zm()
+
+site <- rbind(boundaries2023, station) |>
+  mutate(label = c("180",
+                   "60",
+                   "40",
+                   "100",
+                   "80",
+                   "125",
+                   "Commuter Rail Station"))
+
+labels <- st_centroid(site)
+```
+
+```{r site-map, fig.margin = FALSE, fig.cap = "Boston Landing development and adjacent commuter rail station. Basemap by CartoDB — Map data © OpenStreetMap contributors", fig.width=6, fig.height=2.3, cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(site) +
+  annotation_map_tile(type ="cartolight", zoomin = -1) +
+  geom_sf() + 
+  geom_sf_text(data = labels, 
+               angle = -10,
+               aes(label = label)) +
+  annotation_scale(style = "ticks", location = "br",
+                     text_cex = 1) +
+  annotation_north_arrow(style = north_arrow_minimal) +
+  theme_map()
+```
+
+# Transitshed area
+
+The development of the Boston Landing commuter rail station substantially
+expanded the size of the transitshed for the site during the weekday 
+commute periods. Prior to the station opening, the area of the transitshed
+at 6pm on a weekday was about 6.3 square kilometers (Figure 2). 
+After the station opened, the area of the transitshed at that time 
+was about 14.1 square kilometers (Figure 3).
+
+```{r read-before-iso, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+iso_before <- here("1-accessibility-boston-landing",
+                   "data",
+                   "bl-iso-before.geojson") |>
+  st_read()
+
+iso_after <- here("1-accessibility-boston-landing",
+                   "data",
+                   "bl-iso-after.geojson") |>
+  st_read()
+
+bbox_before <- st_bbox(iso_before)
+bbox_after <- st_bbox(iso_after)
+
+area_km2_after = units::set_units(st_area(iso_after), km^2)
+area_km2_before = units::set_units(st_area(iso_before), km^2)
+
+routes <- here("1-accessibility-boston-landing",
+               "data",
+               "bl-transit-routes.geojson") |>
+  st_read()
+```
+
+```{r before-iso, fig.margin = FALSE, fig.cap = "30-minute transitshed from development site before the Boston landing Station opening", fig.width=6, fig.height=2.6, cache=TRUE, echo=FALSE}
+  ggplot(routes) +
+    geom_sf(color = "gray", 
+            linewidth = 0.5) +
+    geom_sf(data = iso_before,
+            alpha = 0.5,
+            color = NA,
+            fill = "pink") +
+    geom_sf(data = site,
+            fill = "black",
+            color = NA) +
+    annotation_scale(style = "ticks", location = "br",
+                     text_cex = 1) +
+        coord_sf(xlim = c(bbox_after["xmin"],
+                          bbox_after["xmax"]),
+                 ylim = c(bbox_after["ymin"],
+                          bbox_after["ymax"])) +
+    annotation_north_arrow(style = north_arrow_minimal,
+                           location = "tl") +
+    theme_map() 
+
+```
+
+
+
+```{r after-iso, fig.margin = FALSE, fig.cap = "30-minute transitshed from development site after the Boston landing Station opening", fig.width=6, fig.height=2.6, cache=TRUE, echo=FALSE, message=FALSE, warning=FALSE}
+
+  ggplot(routes) +
+    geom_sf(color = "gray", 
+            linewidth = 0.5) +
+    geom_sf(data = iso_after,
+            alpha = 0.5,
+            color = NA,
+            fill = "pink") +
+      geom_sf(data = site,
+            fill = "black",
+            color = NA) +
+          coord_sf(xlim = c(bbox_after["xmin"],
+                      bbox_after["xmax"]),
+             ylim = c(bbox_after["ymin"],
+                      bbox_after["ymax"])) +
+      annotation_scale(style = "ticks", location = "br",
+                     text_cex = 1) +
+  annotation_north_arrow(style = north_arrow_minimal,
+                           location = "tl") +
+    theme_map() 
+
+```
+
+
+# Accessibility of worker residences
+
+Commercial developments benefit from being accessible from the residences of 
+(potential) workers (and customers). 
+
+The number of workers^[Employees at _any_ U.S. firm, based on employer tax filings]
+living within a thirty-minute transit commute of the site increased between 2012
+and 2020 for three reasons:
+
+1. The development itself includes residential space;
+2. The development included a commuter rail station that expanded the transit
+shed to include existing residential developments that were not previously 
+accessible by transit;
+3. New residential developments opened in the surrounding area, which may have been
+prompted in part by proximity to the development and/or the associated commuter rail 
+station.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+blocks_any <- here("1-accessibility-boston-landing",
+                   "Data",
+                   "blocks.geojson") |>
+  st_read()
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+tibble(Area = c("Site",
+                "Pre-development transitshed",
+                "Post-development transitshed"),
+       `2012` = c(
+         sum(blocks_any$w2012[blocks_any$site]),
+         sum(blocks_any$w2012[blocks_any$before]),
+         sum(blocks_any$w2012[blocks_any$after])),
+       `2020` = c(
+         sum(blocks_any$w2020[blocks_any$site]),
+         sum(blocks_any$w2020[blocks_any$before]),
+         sum(blocks_any$w2020[blocks_any$after]))) |>
+  kable(caption = "Changes in numbers of resident workers from 2012 to 2020",
+        format.args = c(big.mark = " "))
+```
+
+# Accessibility of employment
+
+Commercial developments benefit from proximity to employment centers (for the
+benefits of agglomeration economies, for example) and residential developments
+benefit from proximity to employment.
+
+The number of jobs within a thirty-minute transit commute of the site increased between 2012
+and 2020 for three reasons:
+
+1. The development itself includes commercial space;
+2. The development included a commuter rail station that expanded the transit
+shed to include existing jobs that were not previously 
+accessible by transit;
+3. New jobs were created or relocated to the surrounding area, which may have been
+prompted in part by proximity to the development and/or the associated commuter rail 
+station.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+tibble(Area = c("Site",
+                "Pre-development transitshed",
+                "Post-development transitshed"),
+       `2012` = c(
+         sum(blocks_any$e2012[blocks_any$site]),
+         sum(blocks_any$e2012[blocks_any$before]),
+         sum(blocks_any$e2012[blocks_any$after])),
+       `2020` = c(
+         sum(blocks_any$e2020[blocks_any$site]),
+         sum(blocks_any$e2020[blocks_any$before]),
+         sum(blocks_any$e2020[blocks_any$after]))) |>
+  kable(caption = "Changes in numbers of jobs from 2012 to 2020",
+        format.args = c(big.mark = " "))
+```
+
+
+# Assessed property values
+
+Table 4 shows
+the total assessed land and building values for the site in 2012 and 2020.
+
+```{r, echo=FALSE}
+tibble(`-` = c("Land value",
+                 "Building value",
+                 "Total assessed value"),
+       `2012` = c("$8 416 500",
+                  "$10 303 400",
+                  "$18 719 900"),
+       `2020` = c("$88 879 900",
+                  "$303 617 600",
+                  "$392 497 500")) |>
+  kable(caption = "Total assessed property values for site parcels",
+        align = c("l", "r", "r"))
+```
+
+
+# Questions for discussion
+
+1. Between 2012 and 2020, how much did the site's accessibility to workers increase?
+2. How much of that increase can be attributed to each of the following sources?
+    a. Residential development on-site?
+    b. Off-site residential development?
+    c. Expansion of the transitshed?
+3. Over that same time period, how much did site's accessibility to jobs increase?
+4. How much of that increase can be attributed to each of the following sources?
+    a. Commercial development on-site?
+    b. Off-site job creation/relocation?
+    c. Expansion of the transitshed?
+5. Approximately how much of the increase in the site's value
+might you attribute to increase in accessibility over that time period? 
+6. To what extent do you agree with the claim that accessibility (by all modes, to all possible destination types) is the primary driver of land
+value? What other factors could contribute to land value?

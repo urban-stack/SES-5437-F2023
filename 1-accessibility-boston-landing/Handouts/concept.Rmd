@@ -1,0 +1,303 @@
+---
+title: "Transportation Accessibility"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+here("1-accessibility-boston-landing",
+     "code",
+     "isochrones.R") |>
+  source()
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+Transportation planners use the term *accessibility* to describe the ease 
+with which an individual can reach a set of destinations from a particular 
+location. Accessibility is an important determinant of a site's value.^[Medda, Francesca. "Land value capture finance for transport accessibility: a review." Journal of Transport Geography 25 (2012): 154-161.]
+
+# Measuring Accessibility
+
+There are three basic types of accessibilty metrics: 
+
+* Isochrone-based metrics,
+* Distance-decay metrics, and
+* Utility-based metrics.
+
+## Isochrone-based metrics
+
+An *isochrone* is an area that can be reached within a specified length of 
+time. An isochrone-based accessibility metric is the number of opportunities
+within an isochrone. Examples of isochrones-based accessibility metrics are:
+
+* The number of jobs within a 30-minute drive of a residential development.
+* The number of workers within a 45-minute transit commute from an office building.
+* The number of households within a ten-minute walk of a transit station.
+
+## Distance-decay metrics
+
+One weakness of isochrone-based accessibility metrics is that they require the
+analyst to specify a threshold value within which an opportunity “counts,” and 
+beyond which it does not. For example, if we are calculating the number of jobs
+within 30 minutes of a site, a job that is 29 minutes away will contribute to 
+the site’s measured accessibility, but a job that is 31 minutes away will not. 
+In reality, there is minimal practical difference between 29 minutes and 31 minutes,
+but they happen to fall on either side of the selected threshold.
+Distance-decay measures can address this weakness. Instead of counting all 
+destinations within an isochrone equally and disregarding destinations outside 
+the isochrone, each destination is weighted according to its distance from the 
+site. Weights are based on a distance-decay curve like the one in Figure 1. 
+
+```{r ex-decay, fig.margin = TRUE, fig.cap = "Example of a distance-decay curve", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+travel_time <- seq(0, 60, by=1)
+median = 30
+stdev = 5
+
+logistic = 1.00 - cumsum(dlogis(travel_time, 
+                             location = median, 
+                             scale = stdev, log = FALSE))
+
+tibble(`Travel time` = travel_time,
+       `Weighted destination value` = logistic) |>
+  ggplot() +
+  geom_line(aes(x = `Travel time`,
+                y = `Weighted destination value`)) +
+  scale_x_continuous(breaks = seq(0, 60, by=10)) + 
+  scale_y_continuous(breaks = breaks <- seq(0, 1, by= 0.1),
+                     labels = paste0(breaks*100, "%"))
+```
+
+Based on the distance-decay curve in Figure 1, a destination immediately 
+adjacent to the site would be fully included in the accessibility score. A 
+destination that is 25 minutes away would contribute 70 
+percent of what it would if it were immediately adjacent to the site, and a destination that is 35 minutes away would count as 25 percent. 
+Beyond 60 minutes, the contribution to the accessibility score would be so small
+that you would no longer include it in the analysis at all. 
+
+Just as the analyst needs to select a threshold value for an isochrone-based accessibility metric, they would need to select a distance decay function to define the shape of the curve. In fact, they could select a function to define a curve like the one in Figure 2, and this would be equivalent to an isochrone-based accessibility metric.
+
+```{r ex-step, fig.margin = TRUE, fig.cap = "Distance-decay curve that would reproduce an isochrone-based measure", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+tibble(`Travel time` = c(0, 30, 30, 60),
+       `Weighted destination value` = c(1, 1, 0, 0)) |>
+  ggplot() +
+  geom_line(aes(x = `Travel time`,
+                y = `Weighted destination value`)) +
+  scale_x_continuous(breaks = seq(0, 60, by=10)) + 
+  scale_y_continuous(breaks = breaks <- seq(0, 1, by= 0.1),
+                     labels = paste0(breaks*100, "%"))
+
+```
+
+## Utility-based accessibility metrics
+
+Utility-based accessibility metrics weight destinations based on their relative
+utilities (usefulness or desirability) to an individual traveler. If the only 
+thing a traveler cares about is how long it takes to travel to a destination, 
+then a utility-based metric could be exactly the same a distance-decay metric.
+However, utility-based metrics can also account for other characteristics of a 
+destination that might make it more or less desirable.
+
+## Which is best?
+
+Utility-based metrics incorporate more information than distance-decay metrics
+do, and distance-decay based metrics incorporate more information than 
+isochrone-based metrics do. A major advantage of isochrone-based metrics is 
+that they are easy to understand and to communicate to a general audience. Some 
+researchers have argued than since the various alternative accessibility 
+measures are highly correlated, the advantages of isochrones-based measures 
+(primarily ease of communication) outweigh the technical advantages of 
+other measures.^[Kapatsila, Bogdan, Manuel Santana Palacios, Emily Grisé, and Ahmed El-Geneidy. "Resolving the accessibility dilemma: Comparing cumulative and gravity-based measures of accessibility in eight Canadian cities." Journal of Transport Geography 107 (2023): 103530.]
+
+# Improving Accessibility
+
+For simplicity, this discussion focuses on isochrone-based accessibility 
+measures, but the general principles would apply to distance-decay and 
+utility-based measures as well.
+
+If we think of accessibility as the number of destinations within an 
+isochrone, then there are two ways to increase a site's accessibility:
+
+1. Increase the density of destinations within an isochrone.
+2. Increase the size of the isochrone so that it encompasses more 
+destinations.
+
+## Filling the isochrone
+
+If the size of an isochrone is fixed, but land uses
+can change, the only way to improve accessibility is to increase
+the density of destinations within the isochrone.
+
+## Enlarging the isochrone
+
+The size of an isochrone is not fixed as long as it is possible to change the
+transportation system. Transportation networks determine the sizes of isochrones. The 
+characteristics of the transportation system that are most important
+in determining the size of an isochrone depend on the mode of travel.
+
+_Pedestrians and cyclists: _ Isochrones for pedestrians and cyclists are also
+called walksheds and bikesheds. Figures 3 and 4 show 
+the area of a ten-minute walkshed from each of two secondary schools in 
+Massachusetts, one served by a dense street network in the city of Cambridge, and the other served by 
+a much sparser street network in the town of Douglas. Since walking and biking
+speeds don't vary much from one facility to another, the most important 
+factor determining the size of a walkshed or bikeshed is the directness 
+of pedestrian or bicycle routes. A network requiring pedestrians or cyclists to take 
+more circuitous routes will yield smaller isochrones. The denser street network in Cambridge allows pedestrians to reach a wider area within 
+ten minutes than the sparser, more circuitous street network in Douglas.
+
+```{r big-walkshed, fig.margin = TRUE, fig.cap = "10-minute walkshed from Cambridge Rindge and Latin School in Cambridge, Massachusetts", fig.width=3.5, fig.height=3.5, cache=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+MA_st_plane <- "+proj=lcc +lat_1=42.68333333333333 +lat_2=41.71666666666667 +lat_0=41 +lon_0=-71.5 +x_0=200000.0001016002 +y_0=750000 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+
+iso_plot(lat = 42.374526959478835, 
+         lon = -71.11185828642574,
+         net_dir = here("1-accessibility-boston-landing",
+                        "Networks", "Cambridge"),
+         crs = MA_st_plane,
+         time = 10,
+         mode = "WALK",
+         buffer = 5280*0.4)
+
+
+```
+
+
+```{r mod-walkshed, fig.margin = TRUE, fig.cap = "10-minute walkshed from Douglas High School in Douglas, Massachusetts", fig.width=3.5, fig.height=3.5, cache=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+iso_plot(lat = 42.06833748099289, 
+         lon = -71.70020915922487,
+         net_dir = here("1-accessibility-boston-landing",
+                        "Networks", "Douglas"),
+         crs = MA_st_plane,
+         time = 10,
+         mode = "WALK",
+         buffer = 5280*0.4)
+
+
+```
+
+The most efficient way to enlarge a walkshed is to create pedestrian paths 
+between locations in the network that are geographically close to one another, 
+but connected by an otherwise circuitous route. Figure 5 how the the walkshed
+for Douglas High School could be expanded with the addition of a new pedestrian
+path (shown in blue). This short path shown in blue is about 160 meters long and
+increases the area of the walkshed by about forty percent.
+
+_Transit passengers: _ An isochrone for transit passengers 
+is called a transitshed. This is the area that can be reached within 
+a specified length of time by transit, including all stages of the 
+transit journey: 
+
+* Walking to a transit stop,
+* Waiting for a transit vehicle,
+* Riding on a transit vehicle,
+* Waiting to transfer from one transit vehicle to another, and
+* Walking from a transit stop to the final destination.
+
+Walking to and from transit stops (and between stops to transfer vehicles) 
+can comprise a substantial portion of the 
+total travel time for a transit journey, so dense, connected street networks
+that maximize walkshed areas will tend to also maximise transit shed areas.
+
+Other factors that will determine the size of a transitshed are
+
+* the presence of transit routes, 
+* the speeds of transit vehicles, and 
+* the frequency of transit service. 
+
+Transit frequency can be particularly
+important because time spent waiting for a transit vehicle can be a substantial
+portion of transit travel time. This means transit isochrones can vary by 
+by time of day (for example, if transit service is less frequent during the
+off-peak periods than during the peak period) and by day of the week (for instance,
+if there is less frequent transit service on weekends than on weekdays).
+
+Figure 6 shows the 30-minute transitsheds for Cambridge Rindge and Latin School on
+at 8am on a typical Wednesday and at 2pm on a typical Sunday. Fewer routes run on 
+Sundays, and those that do are less frequent, so the transitshed is about thirty 
+percent smaller on Sunday afternoon than on Wednesday morning.
+
+```{r small-walkshed, fig.margin = TRUE, fig.cap = "Expanded walkshed from Douglas High School", fig.width=3.5, fig.height=3.5, cache=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+iso_plot_compare_nets(lat = 42.06833748099289, 
+         lon = -71.70020915922487,
+         net_dir = here("1-accessibility-boston-landing",
+                        "Networks", "Douglas"),
+         net_dir_mod = here("1-accessibility-boston-landing",
+                        "Networks", "Douglas-mod"),
+         new_links = c(1,2),
+         crs = MA_st_plane,
+         time = 10,
+         mode = "WALK",
+         buffer = 5280*0.4)
+
+
+```
+
+
+_Drivers:_ A driveshed is an isochrone for drivers. The size of a driveshed 
+will depend primarily on 
+vehicle speeds. A well-connected, dense pedestrian network will generally
+lead to slower vehicle speeds. Facilities that allow for fast
+vehicle speeds will generally create circuitous and disconnected pedestrian
+routes.
+
+Ideally, a driveshed would also account for the time a driver must spend
+looking for parking, but analyses often omit this time because it can be
+difficult to predict. Large parking lots can minimize time spent searching 
+for parking.
+
+High-speed vehicle routes and large parking lots that maximize size of a 
+driveshed occupy substantial land area and may displace other land uses. In such cases, 
+enlarging the isochrone may reduce the density of destinations, offsetting any
+improvements in accessibility. High density development within an isochrone
+can also shrink the size of an isochrone by increasing traffic congestion. 
+
+
+```{r wed-transitshed, fig.margin = TRUE, fig.cap = "30-minute transitsheds for weekday mornings and Sunday afternoons from Cambridge Rindge and Latin School in Cambridge, Massachusetts", fig.width=3.5, fig.height=3.5, cache=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+iso_plot_compare_times(lat = 42.374526959478835,
+                       lon = -71.11185828642574,
+                       net_dir = here("1-accessibility-boston-landing",
+                        "Networks", "Cambridge"),
+                       crs = MA_st_plane,
+                       time = 30,
+                       buffer = 5280 * 2.5,
+                       leave_time = c(as.POSIXct("2023-06-07 8:00:00 EDT"),
+                                      as.POSIXct("2023-06-11 14:00:00 EDT")))
+
+
+
+
+```
+
+## Which is more effective?
+
+If our goal is to maximize accessibility, is it better to do it by enlarging our isochrones or filling them? For all modes except the private car, the answer is both: one tends to reinforce the other. For car-based mobility, expanding the isochrone comes at the expense of filling it. 
+
+Researchers have found that proximity (or density) is a more important factor in
+overall accessiblity than travel speed is, even for cars.^[Thomas, Trevor, Andrew Mondschein, Taner Osman, and Brian D. Taylor. "Not so fast? Examining neighborhood-level effects of traffic congestion on job access." Transportation research part A: policy and practice 113 (2018): 529-541.] 
+This means that policies that limit development densities in order to maintain
+uncongested vehicle speeds are likely to reduce overall accessiblity.
+
+Increasing development densities while enlarging isochrones for transit and 
+non-motorized modes will generally be the most effective strategy for 
+maximizing accessiblity.
+
+
+
+
+

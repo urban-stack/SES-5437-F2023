@@ -47,3 +47,22 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+
+# OSM network files (too big)
+1-accessibility-boston-landing/Networks
+
+# assessor data
+boston-assessor-fy2023.csv
+
+# Cache files
+1-accessibility-boston-landing/Handouts/case_cache/
+1-accessibility-boston-landing/Handouts/case_files/
+1-accessibility-boston-landing/Handouts/case.log
+1-accessibility-boston-landing/Handouts/concept_cache/
+1-accessibility-boston-landing/Handouts/concept_files/
+1-accessibility-boston-landing/Handouts/concept.log
+
+1-accessibility-boston-landing/Handouts/rosm.cache/
+
+# RStudio project
+*.Rproj
