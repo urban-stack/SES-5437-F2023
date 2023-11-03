@@ -142,6 +142,8 @@ pct_price <- ((change$`Average revenue per run`[1] -
                 change$`Average revenue per run`[2]) * 2) /
   (change$`Average revenue per run`[1] + 
                 change$`Average revenue per run`[2])
+
+pct_price
 ```
 
 Percent change in supply:
@@ -151,6 +153,8 @@ pct_supply <- ((change$`Average daily runs`[1] -
                 change$`Average daily runs`[2]) * 2) /
   (change$`Average daily runs`[1] + 
                 change$`Average daily runs`[2])
+
+pct_supply
 ```
 
 Elasticity:
@@ -171,6 +175,8 @@ inc_supply <- ((132/7 -
                 change$`Average daily runs`[2]) * 2) /
   (132/7 + 
                 change$`Average daily runs`[2])
+
+inc_supply
 ```
 
 Likely increase in revenue per trip:
@@ -187,6 +193,8 @@ Revenue per trip probably increased by 3.5%
 new_rev_per_trip = change$`Average revenue per run`[2]*(1+inc_rev)
 
 new_rev = new_rev_per_trip*(132/7)
+
+new_rev
 ```
 
 None of this makes much sense, since there's probably some substantial
