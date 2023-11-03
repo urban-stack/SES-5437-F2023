@@ -1,0 +1,140 @@
+---
+title: "Elasticity Case Study: Stockholm Congestion Charge"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+In 2006, Stockholm introduced a congestion charging system that charged 
+drivers a toll when crossing a cordon line around the inner city. In addition to the material presented in this case study please read
+chapter 7 of *Transforming Urban Transport*^[Davis, Diane E., and Alan Altschuler, eds. Transforming Urban Transport. Oxford University Press, USA, 2019.] for further background on the Stockholm congestion charges. Data in this case study are from Börjesson and Kristoffersson (2018).^[Börjesson, Maria, and Ida Kristoffersson. "The Swedish congestion charges: Ten years on." Transportation Research Part A: Policy and Practice 107 (2018): 35-51.]
+
+The level of congestion charge varies by time of day, but remained at
+a consistent level from day to day from 2006 to 2015. In 2016, congestion 
+charge level increased. Table 1 shows congestion charges by time of 
+day before and after the 2016 increase.
+
+```{r, echo=FALSE}
+tibble(Time = c("6:30am - 6:59am",
+                   "7:00am - 7:29am",
+                   "7:30am - 8:29am",
+                   "8:30am - 8:59am",
+                   "9:00am - 9:29am",
+                   "9:30am - 2:59pm",
+                   "3:00pm - 3:29pm",
+                   "3:30pm - 3:59pm",
+                   "4:00pm - 5:29pm",
+                   "5:30pm - 5:59pm",
+                   "6:00pm - 6:29pm",
+                   "6:30pm - 6:29am"),
+       `Cordon charge, 2006 - 2016` = c("SEK 10",
+                    "SEK 15",
+                    "SEK 20",
+                    "SEK 15",
+                    "SEK 10",
+                    "SEK 10",
+                    "SEK 10",
+                    "SEK 15",
+                    "SEK 20",
+                    "SEK 15",
+                    "SEK 10",
+                    "SEK 0"),
+       `Cordon charge, 2016 - present` = c("SEK 15",
+                    "SEK 25",
+                    "SEK 35",
+                    "SEK 25",
+                    "SEK 15",
+                    "SEK 11",
+                    "SEK 15",
+                    "SEK 25",
+                    "SEK 35",
+                    "SEK 25",
+                    "SEK 15",
+                    "SEK 0")) |>
+  kable(caption = "Stockholm congestion charges by year and time of day",
+        align = c("l", "c", "c")) |>
+  kable_styling("striped")
+
+```
+
+Based on average trip lengths and vehicle operating cost, the cost of a typical
+trip across the cordon line, not including the congestion charge, would
+have been SEK 25.5 in 2005/2006 and SEK 31.5 in 2015/2016. 
+
+In Stockholm, about 10 percent of households have access to a "company car":
+a car that is owned by a household member's employer and that the household
+has access to as a perk of employment. When a driver crosses the cordon
+in a company car, their employer pays the charge. Alternative-fuel vehicles
+were exempt from paying the charge until 2012 and taxis were exempt from the charge until 2007.
+
+
+Table 2 shows the volume of non-exempt vehicles crossing the toll cordon 
+during in 2005 (immediately before the congestion charge was implemented) and
+2006 (immediately after the charge was implemented).The 
+average toll paid by non-exempt vehicles in 2006 was SEK 12.8.
+
+```{r, echo=FALSE}
+tibble(Year = c("2005",
+                   "2006"),
+       `Average vehicle volume (veh/hr)` = 
+         c("30,021",
+                    "21,114")) |>
+  kable(caption = "Traffic volumes across the cordon before and after congestion charge implementation",
+        align = c("l", "c"))
+
+```
+
+Table 3 shows the peak-period traffic volume of private vehicles across
+the cordon in 2015 (immediately before the charge
+increased), and 2016 (immediately after the charge increased). It also shows the average toll paid by private vehicles in the peak period
+for each year.
+
+```{r, echo=FALSE}
+tibble(Year = c("2015",
+                   "2016"),
+       `Average vehicle volume during peak (veh/hr)` = 
+         c("13,570",
+                    "11,878"),
+       `Average cordon charge` = c("SEK 17.9",
+                    "SEK 30.7")) |>
+  kable(caption = "Average volumes and charges for ",
+        align = c("l", "c", "c"))
+
+```
+
+# Questions for discussion
+
+1. By what percentage did the cost of traveling across the inner-city cordon
+change:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    b. For peak-period trips in private vehicles between 2015 and 2016?
+2. By what percent did the volume trips crossing the 
+cordon change:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    b. For peak-period trips in private vehicles between 2015 and 2016?
+3. What was the price elasticity of demand for travel across the cordon:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    b. For peak-period trips in private vehicles between 2015 and 2016?
+4. What was the change in consumer surplus associated with:
+    a. The introduction of the congestion charge in 2006?
+    b. The increase in the congestion charge in 2016?
+5. For the consumer surplus changes in both 2006 and 2016,
+how much of the change was experienced by people who continued to drive
+across the cordon and how much was experienced by those who shifted to 
+other modes or reduced their trips to and from the inner city?
+6. What other information would you need to fully account for the costs
+and benefits of the congestion charge for people who live or work
+in Stockholm?
+

@@ -1,0 +1,154 @@
+---
+title: "Transport supply"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+We have discussed how demand changes in response to the cost
+of travel, but we have generally considered the supply of 
+transportation infrastructure or service to by dependent on 
+forces outside the market. This is often the case, but in some
+circumstances,
+supply may be responsive to demand and price.
+
+# Supply curves
+
+As we have previously discussed, demand curves are 
+downward-sloping, so people are willing
+to consume more of a good or service when prices are lower.
+
+Supply curves slope upward, like the one shown in Figure 1. When the
+revenue from providing a service increases, more firms will be 
+willing to provide more of that service.
+
+```{r ex-demand, fig.margin = TRUE, fig.cap = "Example of a demand curve", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+supply <- tibble(`Revenue per trip` = 1*(1.01^(1:100)),
+                 `Number of trips offered` = seq(100, 199, by=1))
+
+ggplot(supply) +
+  geom_line(aes(x = `Number of trips offered`, y = `Revenue per trip`)) +
+  scale_y_continuous(breaks = breaks <- seq(1, 2.75, by=0.25),
+                     labels = paste0("$", formatC(breaks, digits = 3))) +
+  theme_minimal()
+```
+
+# Elasticity
+
+The *price elasticity of supply* refers to the steepness of the supply curve
+or how responsive firms are to changes in the revenue per unit provided. 
+
+We can calculate the price elasticity of supply similarly to how we've 
+calculated the price elasticity of demand.
+
+First, we would calculate the symmetrical percent change in both
+price (revenue per unit offered) and supply (number of units offered). 
+Remember that
+symmetrical percent change is:
+
+$$
+\frac{x_2 - x_1}{\frac{1}{2}(x_2+x_1)}
+$$
+
+
+And the elasticity would be the percent change in supply divided 
+by the percent change in price.
+
+# Mohring Effect
+
+Demand elasticities are most relevant when service providers
+are profit-maximizing, but the cost of operating a service
+can also influence supply even when the provider is trying
+to make socially-optimal choices.
+
+Specific to public transit, the economist Herbert Mohring developed the
+following equation to describe to optimal frequency of bus service that
+minimizes both the cost of providing the service and the cost of 
+using the service:
+
+$$
+F = \sqrt{\frac{Vp}{2CT}}
+$$
+Where:
+
+* F = the frequency of the service (vehicles per hour)
+* V = the value of passenger travel time (dollars per hour)
+* p = ridership on a route (riders per hour)
+* C = the cost of operating the service (dollars per vehicle-hour)
+* T = the time it takes to traverse the route (hours per vehicle)
+
+Let's say there is a a bus route that currently costs
+/$200 per vehicle-hour to run, and each vehicle trip takes
+a vehicle 2 hours. The value of a rider's time is /$18 per hour.
+Currently, the bus operates at five-minute headway (so 12 buses
+arrive at each stop per hour), and the current ridership is 
+880 passengers per hour.
+
+The transit agency uses Mohring's equation to see if their current
+frequency is socially optimal (a transit agency probably wouldn't
+do this in practice, but let's just go with it for this example).
+
+The find that the optimal frequency is:
+
+$$
+\sqrt{\frac{18 \times 880}{2 \times 200 \times 2}} = 4.4
+$$
+
+They're offering way too much service! So they reduce their service
+to approximately 4.4 buses per hour, which corresponds to a 13 minute 
+headway. 
+
+However, this changes the cost of travel for passengers, since now
+they have to wait longer, on average, for a bus. It turns out that
+the elasticity of demand with respect to wait time is 0.5, meaning that
+a one-percent increase in wait time will result in a 0.5-percent
+reduction in demand. With five-minute headways, the average wait
+time for a bus was 2.5 minutes. Now, with 13-minute headways, the
+average wait time is 6.5 minutes. This is 160-percent increase 
+in wait time, so it results in an 80-percent decrease in demand.
+The new demand for this transit route is 176 passengers per hour.
+
+The transit agency decides to check to see if their new frequency
+is still optimal, given this change in ridership. It isn't 
+the new optimal frequency is:
+
+$$
+\sqrt{\frac{18 \times 176}{2 \times 200 \times 2}} = 2.0
+$$
+
+So they reduce the service frequency again, this time to operate 
+only 2 buses per hour (a 30 minute headway).
+
+This reduction in frequency results in a further reduction in ridership,
+and this vicious cycle of ridership losses and service cuts continues.
+
+Mohring described this dynamic to make the case for transit 
+subsidies.
+
+Let's go back to the original condition with buses at 5-minute headways
+and a demand of 880 passengers per hour. Now let's say taxpayers
+will subsidize 85% of operations so that the cost of operating the
+service is only /$30 per hour.
+
+What would the optimal frequency be?
+
+$$
+\sqrt{\frac{18 \times 880}{2 \times 30 \times 2}} = 12
+$$
+
+The subsidy supports keeping frequencies, and thus ridership, at 
+the existing level.

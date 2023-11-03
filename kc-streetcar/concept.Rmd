@@ -1,0 +1,136 @@
+---
+title: "Value Capture, debt, and net present value"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+Transportation infrastructure can be funded through *user fees*, paid by
+those who *use* the transportation system or by *general taxes*, paid by
+all taxpayers. The logic of paying for infrastructure through general 
+taxes is that members of the general public benefit from 
+the presence of transportation infrastructures regardless of whether 
+they use it. However, the benefits they enjoy may not necessarily
+be distributed proportionately with the taxes they pay.
+
+*Value capture* strategies are mechanisms that seek to raise revenue
+for transportation infrastructure based on the value of its non-user 
+benefits. If businesses adjacent to a new bike path^[See the New York City Department of Transportation's Report, _Measuring the Street_, 
+for an examples of increases in retail sales following the installation
+of new bike and pedestrian infrastructure. https://www.nyc.gov/html/dot/downloads/pdf/2012-10-measuring-the-street.pdf] or transit line experience an increase in retail sales, then
+sales taxes at those businesses might be a form of value capture.
+If property values increase when a new bridge or ferry service makes
+a community more accessible to employment centers, then property 
+taxes might be a form of value capture.
+
+# Debt
+
+Revenue from value capture strategies or user fees comes after a 
+project opens for service, but the costs of constructing a project
+must be paid before it opens. 
+
+Public agencies can borrow money from investors to build a project 
+and use value-capture or user-fee revenue to repay those loans. There
+is a fairness argument for funding transportation infrastructure
+using debt: Those who will benefit from a project are the ones who
+will pay for it.
+
+# Net present value
+
+In order to compare future benefits or revenues from a project to 
+immediate costs, we need to have a way of converting expected
+future benefits to an equivalent present-day value.
+
+If I were to offer to give you either $100 today or the same amount
+of money two one year from now, you would likely prefer to have the 
+money today, and there are a couple reasons why this would be 
+reasonable:
+
+1. There are things you value that you could purchase today, and those
+things may not still be available at that price next year.
+2. You could invest that money and earn an additional year's worth
+of interest if you had it today.
+3. Life is uncertain and something could happen in the next year
+that makes it impossible for me to give you the money.
+
+If I were to offer you either \$100 today or \$120 one year from
+now, your preference between those two options would depend on your
+beliefs about:
+
+1. How much the prices and availability of things you want to purchase 
+might change over the next year;
+2. How much interest you can earn in a year; and
+3. How likely it is that something will happen to prevent me from 
+paying you next year.
+
+There is some value of money I could promise you next year where you 
+would be indifferent between receiving $100 now, or receiving that 
+amount next year. The percent difference between that value and the
+money you could receive now is your own personal *discount rate.*
+
+In other words:
+
+$$
+r = \frac{FV}{PV} - 1
+$$
+
+Where *r* is the discount rate and  *FV* and *PV* and the future 
+values and present values that you are indifferent between. 
+
+If you know the future value and the discount rate, you can rearrange
+that formula to find the present value:
+
+$$
+PV = \frac{FV}{(1+r)}
+$$
+
+This is all assuming we'd be getting that future benefit in one
+year. If we had to wait two years for the future benefit, we'd need
+to apply the discount rate twice:
+
+$$
+PV = FV \left( \frac{1}{1 + r} \right)\left( \frac{1}{1 + r} \right)
+$$
+
+We can write this formula for the present value of a benefit
+we'll receive *any* number of years in the future as:
+
+$$
+PV = \frac{FV}{(1+r)^t}
+$$
+
+Where *r* is the annual discount rate and *t* is the number of years
+in the future.
+
+In a both Microsoft Excel and Google Sheets, you can calculate the
+present value of set of future benefits using the function:
+
+
+$$
+$$
+
+<center>
+
+=NPV(r, cell1:celln)
+
+</center>
+
+$$
+$$
+
+
+Where r is the annual discount rate and cell1:celln is a list of 
+future benefits, where the first value in the list is the benefit that
+will come after one year, the next value is the benefit that will
+come after two years, and so on.

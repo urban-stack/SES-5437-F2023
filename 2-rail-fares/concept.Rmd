@@ -1,0 +1,153 @@
+---
+title: "Subsidy and equity"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+To discuss how transportation subsidies are distributed among
+travelers and other beneficiaries of the transportation system,
+it is useful to understand the distinctions between:
+
+* Public goods and private goods
+* Fixed and variable costs
+* User fees and general taxes
+* Horizontal and vertical equity
+
+# Public goods and private goods
+
+In everyday speech, we often use the term "public good" to refer to 
+things that are good for the general public. In economics, the term 
+"public good" has a different, specific meeting.
+
+A *public good* is good or service that is both *non-excludable* and
+*non-rivalrous*. 
+
+If something is *excludable*, then the person who owns or controls it
+can prohibit others from using it or benefitting from it. My car is an 
+*excludable* good. I can lock it and park it in a secure location and thus
+prevent anyone from using it without my permission. If I wanted to, I 
+could ask people to pay me for access to my car. The sidewalk in front 
+of my house is *non-excludable*. The city I live in owns the sidewalk, but
+there is nothing they can do to prevent spefic people from using it (without 
+making substantial enough changes that it no longer functions as a sidewalk).
+This is why sidewalks are not tolled.
+
+If something is *rivalrous*, then one person's use of it 
+prevents others from fully using or benefitting from it.
+My car is *rivalrous*. If one person is using it, it isn't
+available for anyone else's use at the same time. Space on 
+a congested highway is also rivalrous. Each additional car on 
+the highway slows down traffic for all the cars that are already there.
+Transit service is *non-rivalrous* The benefit I get from riding a bus
+with five other people does not diminish when a sixth person boards.
+
+*Public goods* (those that are non-rivalrous and non-excludable)
+are commonly provided to the general public at the public 
+expense because there isn't really a good way to sell such goods 
+to anyone. If you provide it for one person, you are providing it
+to everyone. There's no way to charge people for their consumption. 
+Under uncongested conditions, roads and sidewalk can be classified as
+public goods.
+
+*Private goods* are both rivalrous and excludable. As described above,
+my car would be a private good.
+
+If a good is rivalrous and non-excludable, it is called a *common good*.
+Congested sidewalks might be described as a common good.
+
+If a good is excludable but non-rivalrous, it is called a *club good*. 
+Satellite radio might be an example of a club good (I can't think 
+of a transportation example).
+
+# Fixed and variable costs
+
+Delivering transportation infrastructure involves both *fixed costs*
+and *variable costs*. 
+
+*Fixed costs* are those that are constant regardless of the 
+number of people that use a good or service (or the intensity of use). 
+This might be the cost of
+purchasing a vehicle or building a parking lot.
+
+*Variable costs* are those that vary with the amount or intensity of 
+use. Variable costs might include fuel for vehicles or wages for transit
+vehicle operators.
+
+The total cost of delivering a transportation service can be characterized
+as: 
+
+$$
+C = F + Vx
+$$
+
+Where *C* is the total cost, *F* is the fixed cost, *V* is the
+average variable cost per unit (e.g. per mile, per passenger, per trip),
+and *x* is the number of units (e.g. miles, passengers, trips).
+
+# Revenue for covering costs
+
+There are two possible ways to recover the cost of providing
+transportation service. Through *user fees* (generally only
+possible if the service is *excludable*) and *subsidies*
+which might come from general taxes or voluntary donations.
+
+*User fees* include tolls on highways, fares for riding 
+transit vehicles, or payments for using a bikeshare bike.
+There is a fairness argument for reliance on user fees to 
+fund transportation infrastructure and services. However, 
+it is rare for any transportation system to raise enough funding
+through user fees to cover the full cost of delivering and operating
+the system. Almost all transportation systems rely on subsidies.
+
+The practical argument for subsidies is that cities need
+transportation systems to function and it isn't possible to 
+deliver them without subsidy. A fairness argument is that
+people benefit from being in a place with a functional transportation
+system even if they don't use it themselves. In other words, the 
+benefits of the transportation system are *non-excludable* and 
+*non-rivalrous*, so the part of the system that must be 
+subsidized might be classified as a public good.
+
+# Distibution of revenue sources
+
+When we discuss the fairness of a system of revenue collection, 
+it is helpful to differentiate between vertical and horizontal 
+equity. These concepts originate in tax law, but can be expanded
+to apply to user fees.
+
+## Vertical equity 
+
+Vertical equity refers to a situation in which people with higher
+incomes pay a higher proportion of their incomes. We would also describe
+this as a *progressive* tax or pricing structure.
+
+## Horizontal equity
+
+Horizontal equity refers to a situation in which all people 
+pay the same proportion of their incomes. We would also describe this
+as a *proportionate* tax or pricing structure.
+
+## Regressivity
+
+Regardless of whether we are aiming for vertical or horizontal
+equity, a tax or pricing structure in which lower-income people
+pay a higher share of their income would be described as inequitable.
+This is referred to as a *regressive* tax or pricing structure.
+
+If all people, regardless of income, pay the same amount for using
+a transportation system, then lower-income people are paying a higher 
+proportion of their incomes than higher-income people are. This could
+be an argument for goods and services that are *inelastic with respect to income*
+to be publicly provided and funded through taxes rather than user fees.

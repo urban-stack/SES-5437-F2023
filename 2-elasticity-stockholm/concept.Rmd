@@ -1,0 +1,324 @@
+---
+title: "Demand, Elasticity, and Consumer Surplus"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(here)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+When evaluating the effects of changes to the transportation system, it is 
+useful to understanding how one might measure the total economic cost of 
+travel, to predict how demand changes in 
+response to changes in cost, and to quantify how the benefits people get 
+from the transportation system change when the cost of travel changes.
+
+# Cost of travel
+
+The total cost of travel includes both *monetary* and *non-monetary* costs.
+
+*Monetary* costs include things like transit fares, tolls, and the cost
+of fuel and vehicle maintenance. 
+
+*Non-monetary* costs include things like travel time, discomfort, and risk of
+death, injury, or property damage. In many common circumstances, travel time
+represents most of the total cost of travel. Risk of death or injury may also
+be an important factor.
+
+In order to combine monetary and non-monetary costs, we need to be able to 
+express them with a common unit of measurement. One way to do this is to assign
+a monetary value to non-monetary costs.
+
+# Demand for travel
+
+We can observe the demand for travel as the total amount of travel at the 
+existing price. The units of measurement for travel demand should be consistent
+with with the data we have on prices. If we have data on the price per trip, 
+then our measure of travel demand should be the number of trips. If we have
+data on the price per distance traveled (e.g. the cost per mile or the cost
+per kilometer), then our measure of travel demand should be the total distance
+traveled.
+
+# Demand curves
+
+If the price of travel changes, it is possible that the demand for 
+travel will change as well. 
+
+A demand curve like the one shown in Figure 1 illustrates the relationship 
+between demand and price, with 
+price shown on the y-axis and demand shown on the x-axis. We typically
+plot independent variables on the x-axis and dependent variables on the 
+y-axis. If we understand demand changes to be in response to price changes,
+this convention of plotting price on the y-axis will seem backwards (or 
+sideways).
+
+```{r ex-demand, fig.margin = TRUE, fig.cap = "Example of a demand curve", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+demand <- tibble(`Cost per trip` = 1*(1.01^(1:100)),
+                 `Number of trips taken` = 2000*(0.99^(1:100)))
+
+ggplot(demand) +
+  geom_line(aes(x = `Number of trips taken`, y = `Cost per trip`)) +
+  scale_y_continuous(breaks = breaks <- seq(1, 2.75, by=0.25),
+                     labels = paste0("$", formatC(breaks, digits = 3))) +
+  theme_minimal()
+```
+
+# Elasticity
+
+The *elasticity* of demand refers to the steepness of the demand curve
+or how responsive people are to price changes. If people always use a
+particular transportation system the same amount, no matter how much 
+it costs, then we would say that demand is *perfectly inelastic* and the demand
+curve would be a vertical line like the one in Figure 2, indicating that
+demand is the same at all prices.
+
+```{r inelas-demand, fig.margin = TRUE, fig.cap = "Perfectly inelastic demand curve", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+inelastic_demand <- tibble(`Cost per trip` = c(1, 2.7),
+                 `Number of trips taken` = c(1500, 1500))
+
+ggplot(inelastic_demand) +
+  geom_line(aes(x = `Number of trips taken`, y = `Cost per trip`)) +
+  scale_x_continuous(limits = c(750, 2000),
+                     breaks = c(1000, 1500, 2000)) +
+  theme_minimal() 
+
+```
+
+Inelastic demand would suggest that there are *no* alternatives to travel 
+on a particular system, and this is never the case (staying home is often a 
+reasonable alternative). However, when there are very few alternatives,
+a demand curve would be very steep. Figure 3 shows a demand curve for gasoline
+in the United States between 2004 and 2014^[**Source:** Based on quarterly data from Eliana Eitches and Vera Crain , “Using gasoline data to explain inelasticity ,” Beyond the Numbers: Prices & Spending, vol. 5, no. 5 (U.S. Bureau of Labor Statistics, March 2016), https://www.bls.gov/opub/btn/volume-5/using-gasoline-data-to-explain-inelasticity.htm].
+
+```{r gas-demand, fig.margin = TRUE, fig.cap = "Demand curve for gasoline in the United States", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+gas_data <- here("2-elasticity-stockholm",
+                 "gas-prices.csv") |>
+  read_csv() |>
+  rename(total_spend = 
+           `Dollar expenditures for gasoline and gasoline on out of town trips`,
+         gallons = `Estimated gallons of gasoline purchased using CPI data`) |>
+  mutate(price_per_gal = total_spend / gallons) |>
+  mutate(price_pct_of_max = price_per_gal / max(price_per_gal)) |>
+  mutate(gal_pct_of_max = gallons / max(gallons))
+
+ggplot(gas_data, aes(x = gal_pct_of_max, y = price_pct_of_max)) +
+  geom_point(size = 0.5) +
+  stat_smooth(method = "lm",
+              linewidth = 0.1,
+              color = "black",
+              lty = "dashed") +
+  scale_x_continuous(limits = c(0.4, 1),
+                     name = "Gallons of gasoline purchased\n(as a percent of the maximum\nvalue between 2004 and 2014)",
+                     breaks = breaks <- seq(0.4, 1, by = 0.2),
+                     labels = paste0(breaks*100, "%")) +
+  scale_y_continuous(limits = c(0.4, 1),
+                     name = "Average price per gallon\n(as a percent of the maximum\nvalue between 2004 and 2014)",
+                     breaks = breaks <- seq(0.4, 1, by = 0.2),
+                     labels = paste0(breaks*100, "%")) +
+  theme_minimal()
+
+```
+
+Between 2004 and 2014, gas prices fluctuated between \$3.91 per gallon (in
+the third quarter of 2008) and \$1.72 per gallon (in the first quarter of 
+2004). During the first quarter of 2004, when gas cost about \$1.72 per gallon,
+the average household consumed about 210.7 gallons of gasoline. During the the 
+third quarter of 2008, when gas prices were 127 percent higher, the average 
+household consumed 180.5 gallons of gasoline: an reduction of just 14 percent.
+
+We can calculate elasticity as the ratio of an observed change in demand to 
+the associated observed change in price, or the reduction in demand that would 
+be associated with a one-percent increase in price.
+
+In the above example, the elasticity of demand for gasoline would be:
+
+$$
+\frac{14\%}{127\%} = 0.11
+$$
+
+It's worth noting that, while \$3.91 is 127% higher than \$1.72, 
+\$1.72 is 56% lower than \$3.91. Likewise, 180.5 gallons is 14% 
+lower than 210.7 gallons, but 210.7 gallons is 17% higher than 
+180.5 gallons. This means that if we were talking about a decrease 
+in gas prices rather than an increase, we'd get an elasticity of:
+
+$$
+\frac{17\%}{56\%} = 0.30
+$$
+
+It doesn't really make sense that price elasticities would be 
+different for price increases than decreases. A common way 
+to bring them into alignment is to calculate the percent 
+change as a symmeterical percent change:
+
+$$
+change = \frac{difference}{average}
+$$
+
+So the symmetrical percent change in gas prices would be:
+
+$$
+\frac{3.91 - 1.72}{\frac{1}{2}(3.91+1.75)} = 77\%
+$$
+
+The symmetrical percent change in fuel consumption would be:
+
+$$
+\frac{210.7 - 180.5}{\frac{1}{2}(210.7+180.5)} = 15\%
+$$
+
+And the elasticity (for a price increase or decrease) would be:
+
+$$
+\frac{15\%}{77\%} = 0.19
+$$
+
+When you are setting prices for something, having a guess as to 
+how elastic the demand for that thing is can be really useful. 
+When there is inelastic demand, you can expect revenue to increase
+by the same amount that the price increases. If demand is elastic,
+small increases in price can lead to large increases in demand, 
+so changes in revenue might be modest (or even negative).
+
+# Consumer surplus
+
+You can think of the downward sloping demand curve as implying 
+that each person has a price they would be willing to pay for a 
+given service or good (this is a simplification).
+
+In the demand curve shown in Figure 1, at a price of \$2 per trip, 
+there are about 990 people who would be willing to make a trip. At 
+a price of a \$1.99 per trip, 1000 people would be willing to make
+a trip. These additional ten people who are willing to pay \$1.99
+for a trip (but not \$2) are satisfied with a price of \$1.99: They
+are paying exactly as much for the trip as the trip is worth to them.
+
+The other 990 people who would have still made a trip at a price of 
+\$2 per trip are even happier because they are paying less for the trip 
+than they were willing to pay. Some of them would have been willing to 
+pay more than \$2.50 per trip, so those folks are very happy with the
+price of \$1.99. Others would have been willing to pay up to $2, so 
+they happy about the price being \$1.99, but not as happy as those
+who would have been willing to pay up to \$1.
+
+The total difference between the actual price of something and how much 
+everyone who purchases at that price would have been willing to 
+pay is the *consumer surplus*. You can picture it as the area below
+the demand curve and above the price level, as shown in Figure 4.
+
+```{r surplus, fig.margin = TRUE, fig.cap = "Illustration of consumer surplus", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+demand <- demand |>
+  mutate(price1 = 1.75,
+         price2 = 2)
+
+ggplot(demand) +
+  geom_line(aes(x = `Number of trips taken`, y = `Cost per trip`)) +
+  geom_line(data = demand[demand$`Number of trips taken` < 1500,],
+            aes(x = `Number of trips taken`, y = `price1`)) +
+  geom_ribbon(data = demand[demand$`Cost per trip` > demand$price1,],
+              aes(ymin=price1,
+                  ymax=`Cost per trip`, 
+                  x = `Number of trips taken`), 
+              fill="gray", alpha=0.5) +
+  scale_y_continuous(breaks = breaks <- seq(1, 2.75, by=0.25),
+                     labels = paste0("$", formatC(breaks, digits = 3))) +
+  annotate("text", x = 1530, y = 1.75, label = "Price = $1.75",
+           hjust = 0) +
+  theme_minimal()
+```
+
+Consumer surplus is most useful for thinking about the total 
+benefit (or loss) to consumers that comes with a change in
+price. Figure 5 illustrates the increase in consumer surplus that
+comes from reducing the price per trip from \$2 per trip to \$1.75
+per trip. The dark-gray area is the consumer surplus when the price is \$2 and
+the light-gray area is the additional consumer surplus that is gained
+when the price drops to \$1.75.
+
+```{r surplus-change, fig.margin = TRUE, fig.cap = "Illustration of a change in consumer surplus", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+plot <- ggplot(demand) +
+  geom_line(aes(x = `Number of trips taken`, y = `Cost per trip`)) +
+  geom_line(data = demand[demand$`Number of trips taken` < 1250,],
+            aes(x = `Number of trips taken`, y = `price1`)) +
+    geom_line(data = demand[demand$`Number of trips taken` < 1250,],
+            aes(x = `Number of trips taken`, y = `price2`)) +
+  geom_ribbon(data = demand[demand$`Cost per trip` > demand$price1,],
+              aes(ymin=price1,
+                  ymax=`Cost per trip`, 
+                  x = `Number of trips taken`), 
+              fill="gray70", alpha=0.5) +
+    geom_ribbon(data = demand[demand$`Cost per trip` > demand$price2,],
+              aes(ymin=price2,
+                  ymax=`Cost per trip`, 
+                  x = `Number of trips taken`), 
+              fill="gray30", alpha=0.5) +
+  scale_y_continuous(breaks = breaks <- seq(1, 2.75, by=0.25),
+                     labels = paste0("$", formatC(breaks, digits = 3))) +
+  annotate("text", x = 1280, y = 2, label = "Initial price = $2.00",
+           hjust = 0) +
+  annotate("text", x = 1280, y = 1.75, label = "Final price = $1.75",
+           hjust = 0) +
+  theme_minimal()
+
+plot
+```
+
+We can quantify the benefit of this price change to consumers
+by calculating the area of the light-gray area, which we can 
+approximate as a rectangle plus a triangle - as illustrated in 
+in Figure 6.
+
+```{r surplus-parts, fig.margin = TRUE, fig.cap = "Parts of consumer surplus", fig.width=3.5, fig.height=3.5, cache=TRUE, echo=FALSE, message=FALSE}
+
+plot +
+  annotate("rect", 
+           xmin = min(demand$`Number of trips taken`),
+           xmax = 990,
+           ymin = 1.75, ymax = 2,
+           fill = NA,
+           linetype = "dotted",
+           color = "black",
+           linewidth = 1.1) +
+  annotate("segment",
+           x = 1139,
+           y = 1.75,
+           xend = 990,
+           yend = 2,
+           linetype = "dotted",
+           color = "black",
+           linewidth = 1.1) +
+  annotate("segment",
+           x = 1139,
+           y = 1.75,
+           xend = 990,
+           yend = 1.75,
+           linetype = "dotted",
+           color = "black",
+           linewidth = 1.1)
+```
+
+The area of the rectangle is the demand at the initial price times
+the change in price. The area of the triangle is one half the
+difference in the price times the difference in demand.
+
+Dividing the area into a rectangle and a triangle isn't just 
+a trick for calculating the area. It also has a direct interpretation.
+The area of the rectangle represents the benefit to existing
+travelers, and the area of the triangle represents the benefit to 
+new travelers.

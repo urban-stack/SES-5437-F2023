@@ -1,0 +1,157 @@
+---
+title: "Elasticity Case Study Solution: Stockholm Congestion Charge"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+
+
+# Questions for discussion
+
+1. By what percentage did the cost of traveling across the inner-city cordon
+change:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    
+
+
+$$
+\frac{12.8}{25.5} = 50\%
+$$
+
+A 50 percent increase. For purposes of calculating elasticity, the symmetrical 
+percent change would be more appropriate:
+
+$$
+\frac{12.8}{25.5 + \frac{1}{2}12.8} = 40\%
+$$
+    
+A 40 percent change.    
+    
+    b. For peak-period trips in private vehicles between 2015 and 2016?
+    
+$$
+\frac{30.7-17.9}{31.5+17.9} = 26\%
+$$
+
+A 26 percent increase. For purposes of calculating elasticity, the symmetrical 
+percent change would be more appropriate:
+
+$$
+\frac{30.7-17.9}{31.5 + \frac{1}{2}(17.9+30.7)} = 23\%
+$$
+    
+A nine percent change.    
+
+2. By what percent did the volume trips crossing the 
+cordon change:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    
+$$
+\frac{30,021 - 21,114}{30,021} = 30\%
+$$
+
+There was a 30 percent reduction in traffic volumes. 
+
+For purposes of calculating elasticity,
+it would be more sensible to use the symmetrical percent change:
+
+$$
+\frac{30,021 - 21,114}{\frac{1}{2}(30,021 + 21,114)} = 35\%
+$$
+    
+A 35% difference in traffic volumes.
+
+  b. For peak-period trips in private vehicles between 2015 and 2016?
+    
+$$
+\frac{13,570 - 11,878}{13,570} = 12\%
+$$
+    
+A 12 percent reduction.
+
+For purposes of calculating elasticity,
+it would be more sensible to use the symmetrical percent change:
+
+$$
+\frac{13,570 - 11,878}{\frac12(13,570 + 11,878)} = 13\%
+$$
+
+
+3. What was the price elasticity of demand for travel across the cordon:
+    a. For all trips in non-exempt vehicles between 2005 and 2006? 
+    
+$$
+\frac{35\%}{40\%} = 0.88
+$$
+  
+   b. For peak-period trips in private vehicles between 2015 and 2016?
+    
+$$
+\frac{13\%}{23\%} = 0.56
+$$    
+    
+4. What was the change in consumer surplus associated with:
+
+   a. The introduction of the congestion charge in 2006?
+
+$$
+(30,021 - 21,114)(25.5) + \frac12(12.8)(30,021-21,114)
+$$
+
+$$
+227,128.5 + 57,004.8 =284,133.3
+$$
+
+A reduction in consumer surplus of SEK 284 133.3
+
+   b. The increase in the congestion charge in 2016?
+   
+$$
+(13,570 - 11,878)(31.5+17.9) + \frac12(30.7-17.9)(13,570 - 11,878)=94,377.6
+$$
+    
+A reduction in consumer surplus of SEK 94 37.6
+
+5. For the consumer surplus changes in both 2006 and 2016,
+how much of the change was experienced by people who continued to drive
+across the cordon and how much was experienced by those who shifted to 
+other modes or reduced their trips to and from the inner city?
+
+*2006:* 
+
+$$
+\frac{227,128.5}{284,133.3} = 80\%
+$$
+
+80 percent of reduction in total consumer surplus came from drivers who
+continued to drive across the cordon.
+
+*2016:*
+
+$$
+\frac{83,548.8}{94,377.6} = 89\%
+$$
+
+89\% of the reduction in consumer surplus can from people who continued
+to drive across the cordon.
+
+6. What other information would you need to fully account for the costs
+and benefits of the congestion charge for people who live or work
+in Stockholm?
+
+For benefits to drivers, you would need to account for differences in travel
+time. There are also costs and benefits to non-drivers (externalites) such 
+as traffic noise, air pollution, greenhouse gas emissions.

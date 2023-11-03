@@ -1,0 +1,198 @@
+---
+title: "Establishment of new informal transport service"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(here)
+library(sf)
+library(tigris)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+# Background
+
+This case is based on research conducted by Tamara Kerzhner.
+
+To test a theory that there may be a market for minibus routes that aren't 
+currently being served, researchers paid operators a subsidy to operate a new
+radial route in Kampala, Uganda.
+
+Operators were paid 211,000 shillings (about \$56 USD) per 
+day to operate the new route during the first half of a 
+three-week pilot, and 150,000 shillings (about \$40 USD)
+per day during the second half of the pilot. After the pilot concluded, 
+some drivers continued to operate the route without a subsidy.
+
+# Operating data
+
+The following table summarizes the following operating data for each day during the 
+pilot.
+
+* Day: The day of the pilot program (a value of 1 is the first day of the pilot)
+* Day of week: The day of the week
+* Vehicles operating: The number of vehicles serving the route on that day
+* Runs per day: The total number of runs (a vehicle's trip from one end of th
+route to the other in either direction) by all vehicles that day
+* Passengers: The total number of passengers served by all vehicles that
+day, based on data reported by the vehicle operators (operators probably
+misrepresented this data to be lower than the actual number of passengers)
+* Fare collected: The total fare collected by all vehicles on that day, 
+based on data reported by the vehicle operators (operators probably underreported
+these values)
+* Subsidy payment: The total payment by researchers to all vehicle operators 
+to cover vehicle operating costs.
+
+```{r, echo=FALSE, message=FALSE, fig.fullwidth=TRUE}
+data <- here("Informal",
+             "vehicles_anon.csv") |>
+  read_csv() |>
+  mutate(revenue = 500*`500`+
+                   1000*`1000` +
+                   1500*`1500` +
+                   2000*`2000` +
+                   2500*`2500` +
+                   3000*`3000` +
+                   4000*`4000`) |>
+  mutate(rev_per_run = revenue / Runs) 
+
+veh_by_day <- data |>
+  group_by(Day) |>
+  summarise(`Vehicles operating` = n(),
+            `Runs per day` = sum(Runs),
+            `Passengers` = sum(Women) + sum(Men) + sum(Child),
+            `Fare collected` = sum(revenue)) |>
+  mutate(`Day of week` = c(rep(c("Monday", 
+                                     "Tuesday",
+                                     "Wednesday",
+                                     "Thursday",
+                                     "Friday",
+                                     "Saturday",
+                                     "Sunday"), 3), "Monday")) |>
+  mutate(sub_per_veh = c(rep(211000, 10), rep(150000, 12))) |>
+  mutate(`Subsidy payment` = sub_per_veh * `Vehicles operating`) |>
+  select(`Day`,
+         `Day of week`,
+         `Vehicles operating`,
+         `Runs per day`,
+         `Passengers`,
+         `Fare collected`,
+         `Subsidy payment`)
+
+kable(veh_by_day) |>
+  kable_styling(full_width = TRUE)
+```
+
+After the pilot program (and associated subsidies) ended, the route 
+continued to operate with 5 vehicles per day on week days and market
+days and 3 vehicles per day on all other days.
+
+# Questions for discussion
+
+1. What was the average daily revenue per run (including
+both fares and subsidies) during the first week of the study?
+
+2. What was the average daily revenue per run (including
+both fares and subsidies) during the last week of the study?
+
+3. What was the average number of daily runs during the first week 
+of the study?
+
+4. What was the average number of daily runs during the last week 
+of the study?
+
+```{r}
+change <- veh_by_day |>
+  mutate(week = c(rep(1, 7), rep(2, 8), rep(3, 7))) |>
+  filter(week == 1 | week == 3) |>
+  mutate(rev_per_run = (`Fare collected` + `Subsidy payment`)/ `Runs per day`) |>
+  group_by(week) |>
+  summarise(`Average revenue per run` = mean(rev_per_run),
+            `Average daily runs` = mean(`Runs per day`)) 
+
+kable(change)
+
+
+```
+
+5. Based on the data presented here, what would be a reasonable 
+estimate for total number of daily runs that continued in a typical
+week after the conclusion of the study?
+
+_Assuming one weekend day is a market day? 33 vehicles per week, each making 4 runs per day? So 132 runs per week, or 18.9 runs per day?_
+
+6. Assuming a constant price elasticity of supply, what is a 
+reasonably guess for the fare revenue that the route generated
+after the pilot concluded?
+
+Percent change in price:
+
+```{r}
+pct_price <- ((change$`Average revenue per run`[1] - 
+                change$`Average revenue per run`[2]) * 2) /
+  (change$`Average revenue per run`[1] + 
+                change$`Average revenue per run`[2])
+```
+
+Percent change in supply:
+
+```{r}
+pct_supply <- ((change$`Average daily runs`[1] - 
+                change$`Average daily runs`[2]) * 2) /
+  (change$`Average daily runs`[1] + 
+                change$`Average daily runs`[2])
+```
+
+Elasticity:
+
+```{r}
+elast = pct_supply / pct_price
+
+elast
+```
+
+A 28% reduction in revenue per trip resulted in a 51% reduction in 
+supply. This is very elastic supply.
+
+Increase in supply after pilot:
+
+```{r}
+inc_supply <- ((132/7 - 
+                change$`Average daily runs`[2]) * 2) /
+  (132/7 + 
+                change$`Average daily runs`[2])
+```
+
+Likely increase in revenue per trip:
+
+```{r}
+inc_rev = inc_supply / elast
+
+inc_rev
+```
+
+Revenue per trip probably increased by 3.5%
+
+```{r}
+new_rev_per_trip = change$`Average revenue per run`[2]*(1+inc_rev)
+
+new_rev = new_rev_per_trip*(132/7)
+```
+
+None of this makes much sense, since there's probably some substantial
+underreporting of fares.
+
+7. Given that there appears to have been a market for this route,
+how would you explain why operators had not already begun to serve it?
+
+Risk

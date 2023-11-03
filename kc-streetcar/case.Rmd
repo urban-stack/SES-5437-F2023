@@ -1,0 +1,66 @@
+---
+title: "Value Capture and Net Present Value Example Problem"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(here)
+library(sf)
+library(tigris)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+This hypothetical problem focuses on two neighborhoods, Parkview and 
+Grandview, in an imaginary city. Park Street is the main street serving the central business district of Parkview and Grand Street is the main 
+street serving the central business district of Grandview.
+
+The two neighborhoods and their respective main streets are very similar.
+In 2010, the total value of all properties with frontage along Park Street 
+was \$800M. The total value of all properties with frontage along Grand Street 
+was \$600M. Assessed and actual property values have increased consistently by 
+two percent per year every year since 1980 (and land uses 
+didn't change at all during that time period). 
+
+The city has a 1-percent property tax rate, so in 2010, it collected \$8M
+from properties fronting Park Street and \$6M from
+properties fronting Grand Street.
+
+In 2011, the city announced that it would construct a new fare-free 
+street car line that will run up and down Grand Street. The new line 
+opened in  2013, and the cost of construction was $100M. 
+Since the announcement of the new line, property values
+along Grand Street have increased at a rate of three percent per year.
+Property values along Park Street have continued to increase at a rate
+of two percent per year.
+
+# Questions for discussion
+
+1. What is the the value of the increase in total property value 
+for property owners along Grand Street for each year between 2011
+and 2021, relative to the increases in property value that would
+have occurred if the streetcar had not been built?
+
+2. What is the net present value (in 2010) of these increases, if the 
+discount rate is seven percent?
+
+3. How much tax revenue did the city collect between 2011 and 2021
+that it would not have collected had it not been for the construction
+of the streetcar?
+
+4. What is the net present value (in 2010) of that revenue, if the 
+discount rate is seven percent?
+
+5. Based on the information presented here, was this project worth
+building? What additional information would you need in order to 
+make this determination?
+

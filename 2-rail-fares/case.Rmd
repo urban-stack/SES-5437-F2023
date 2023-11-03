@@ -1,0 +1,410 @@
+---
+title: "Fare Equity Case Study: BART and MARTA"
+author: "Carole Turley Voulgaris, Transportation Economics and Finance (SES 5437), Harvard GSD"
+csl: https://www.zotero.org/styles/chicago-fullnote-bibliography
+suppress-bibliography: yes
+output: tint::tintPdf
+bibliography: refs.bib
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(here)
+library(sf)
+library(tigris)
+
+# invalidate cache when the package version changes
+knitr::opts_chunk$set(tidy = FALSE, cache.extra = packageVersion('tint'))
+#options(htmltools.dir.version = FALSE)
+```
+
+The Bay Area Rapid Transit Sytem (BART) and Metropolitan Atlanta Regional Transit 
+Authority (MARTA) were two of the earliest heavy rail transit systems built in 
+the modern era of publicly-funded, federally-subsidized urban rail transit
+construction. Both systems initially opened for service in the 1970s. They are
+also both named with acronyms that sound like a person's name.
+
+Mallett has developed an accounting method to allocate the total cost of 
+BART and MARTA operations among links and stations within each system.^[Mallett, Z., 2023. Spatial and Temporal Variability of Rail Transit Costs and Cost Effectiveness. Transportation Research Record, 2677(1), pp.1444-1460.] He has also estimated the 
+average fares paid by passengers riding on each link and by passengers boarding and 
+alighting at each station.^[Mallett, Z., 2023. Inequitable Inefficiency: A Case Study of Rail Transit Fare Policies. Working Paper.]
+
+# BART system characteristics
+
+The BART rail system comprises 131.4 miles of track serving 50 stations in 
+the San Francisco Bay Area of California.
+
+BART charges a distance-based fare structure that charges riders a base fare for
+trips trips up to six miles long. For trips longer than six miles, there is an 
+additional fare per mile after the first six miles, and lower fare per mile
+after the first fourteen miles. 
+
+Figure 1 shows the network layout with two specific stations and links highlighted.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+tracts <- tidycensus::get_acs(year = 2019,
+                              geography = "tract",
+                              state = "CA",
+                              county = c("San Francisco",
+                                                     "Marin",
+                                                     "Alameda",
+                                                     "San Mateo",
+                                                     "Contra Costa",
+                                                     "Solano",
+                                                     "Napa",
+                                                     "Sonoma"),
+                              variables = "B06011_001",
+                              output = "wide",
+                              geometry = TRUE)
+
+BART_links_start <- here("2-rail-fares",
+     "data",
+     "LinkAttributes_BART.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long_start", "lat_start")) |>
+  select(-long_end, -lat_end) |>
+  filter(link_start != "C88" & link_end != "C88") 
+
+BART_links_end <- here("2-rail-fares",
+     "data",
+     "LinkAttributes_BART.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long_end", "lat_end"))  |>
+  select(-long_start, -lat_start) |>
+  filter(link_start != "C88" & link_end != "C88")
+
+BART_links <- rbind(BART_links_start, BART_links_end) |>
+  group_by(link) |>
+  summarise(length = mean(length),
+            passengers = mean(passengers),
+            cost_total = mean(cost_total),
+            costpm = mean(costpm),
+            costppx = mean(costppx),
+            costppm = mean(costppm),
+            percentpaid = mean(percentpaid_effective)) |>
+  st_cast("LINESTRING") |>
+  mutate(cases = case_when(percentpaid == min(percentpaid) ~ 
+                             "Warm Springs to Fremont",
+                           percentpaid == max(percentpaid) ~ 
+                             "Oakland Center to West Oakland",
+                           TRUE ~ "Other BART links")) |>
+  mutate(cases = factor(cases, levels = c("Warm Springs to Fremont",
+                                             "Oakland Center to West Oakland",
+                                             "Other BART links"))) |>
+  st_set_crs("NAD83")
+
+BART_station <- here("2-rail-fares",
+     "data",
+     "StationAttributes_BART.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long", "lat"))  |>
+  filter(id %in% BART_links_start$link_start |
+           id %in% BART_links_start$link_end) |>
+    mutate(cases = case_when(percentpaid_effective == 
+                               min(percentpaid_effective) ~ paste0(name, "\nStation"),
+                           percentpaid_effective == max(percentpaid_effective) ~ 
+                             paste0(name, "\nStation"),
+                           TRUE ~ ""))  |>
+  st_set_crs("NAD83")
+
+case_stations = BART_station |>
+  filter(cases != "") |>
+    mutate(`Average fare` = paste0("$", formatC(costppx * percentpaid_effective, digits=2, format="f")),
+         `Annual cost` = paste0("$", prettyNum(cost_total, big.mark = " ")),
+         `Annual ridership` = prettyNum(passengers, big.mark = " ")) |>
+  rename(Station = cases) |>
+  st_join(tracts) |>
+  group_by(Station,
+         `Annual ridership`,
+         `Average fare`,
+         `Annual cost`) |>
+  summarise(`Median income of proximate residents` = paste0("$", prettyNum(round(mean(B06011_001E)), big.mark = " ")))
+
+case_links = BART_links |>
+  filter(cases != "Other BART links") |>
+  mutate(`Average fare` = paste0("$", formatC(costppx * percentpaid, digits=2, format="f")),
+         `Annual cost` = paste0("$", prettyNum(cost_total, big.mark = " ")),
+         `Annual ridership` = prettyNum(passengers, big.mark = " ")) |>
+  rename(Link = cases,
+         `Length (miles)` = length) |>
+  st_join(tracts) |>
+  group_by(Link,
+         `Length (miles)`,
+         `Annual ridership`,
+         `Average fare`,
+         `Annual cost`) |>
+  summarise(`Median income of proximate residents` = paste0("$", prettyNum(round(mean(B06011_001E)), big.mark = " ")))
+
+bart_bbox = st_bbox(BART_station)
+
+water <- tigris::area_water(state = "CA", county = c("San Francisco",
+                                                     "Marin",
+                                                     "Alameda",
+                                                     "San Mateo",
+                                                     "Contra Costa",
+                                                     "Solano",
+                                                     "Napa",
+                                                     "Sonoma"))
+
+
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE, fig.fullwidth = TRUE, fig.cap="BART system map with locations of links and stations of interest"}
+library(ggthemes)
+
+ggplot(BART_links) +
+  geom_sf(data = water,
+          color = NA,
+          fill = "lightgray") +
+  geom_sf(data = BART_station,
+          size = 1) +
+  geom_sf(aes(color = cases),
+          linewidth = 1) +
+  geom_sf_text(data = case_stations,
+                aes(label = Station),
+               hjust = 1,
+               vjust = c(0, 1),
+               nudge_x = -0.02,
+               nudge_y = 0.01,
+               size = 2,
+               color = "#E41A1C") +
+  geom_sf(data = case_stations,
+          color = "#E41A1C",
+          size = 1.5) +
+  theme_map() +
+  coord_sf(xlim = c(as.numeric(bart_bbox["xmin"]) - 0.03, 
+                    as.numeric(bart_bbox["xmax"]) + 0.4),
+           ylim = c(as.numeric(bart_bbox["ymin"] - 0.01),
+                    as.numeric(bart_bbox["ymax"]))) +
+  scale_color_manual(values = c("#4DAF4A",
+                               "#377EB8",
+                               "gray30")) +
+  theme(legend.key.height = unit(0.15, "in"),
+        legend.key.width = unit(0.3, "in"),
+        legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA),
+        legend.position = c(0.6, 0.75),
+        legend.text = element_text(size = 5))
+```
+
+Table 1 shows some basic data on the lines highlighted in Figure 1 and Table 2
+shows some basic data on the stations.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+case_links |>
+  st_drop_geometry() |>
+  `rownames<-`(case_links$Link) |>
+  select(-Link) |>
+  t() |>
+  kable(align = c('r', 'r', 'l'),
+        caption = "Characteristics of BART links of interest") |>
+  kable_styling(full_width = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+case_stations |>
+  st_drop_geometry() |>
+  `rownames<-`(case_links$Station) |>
+  select(-Station) |>
+  t() |>
+  kable(align = c('r', 'r', 'l'),
+        caption = "Characteristics of BART stations of interest") |>
+  kable_styling(full_width = TRUE)
+```
+
+# MARTA system characteristics
+
+The MARTA rail system comprises 48 miles of track serving 38 stations in 
+the Atlanta, Georgia region.
+
+MARTA charges a flat fare of $2.50 per trip, although the average fare on the system
+overall and for riders on a particular part of the system is generally lower that that
+due to fare discounts and the use of multi-day transit passes. 
+
+Figure 1 shows the network layout with two specific stations and links highlighted.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+tracts <- tidycensus::get_acs(year = 2019,
+                              geography = "tract",
+                              state = "GA",
+                              county = c("Fulton", "DeKalb"),
+                              variables = "B06011_001",
+                              output = "wide",
+                              geometry = TRUE)
+
+MARTA_links_start <- here("2-rail-fares",
+     "data",
+     "LinkAttributes_MARTA.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long_start", "lat_start")) |>
+  select(-long_end, -lat_end)  
+
+MARTA_links_end <- here("2-rail-fares",
+     "data",
+     "LinkAttributes_MARTA.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long_end", "lat_end"))  |>
+  select(-long_start, -lat_start) 
+
+MARTA_links <- rbind(MARTA_links_start, MARTA_links_end) |>
+  group_by(link) |>
+  summarise(length = mean(length),
+            passengers = mean(passengers),
+            cost_total = mean(cost_total),
+            costpm = mean(costpm),
+            costppx = mean(costppx),
+            costppm = mean(costppm),
+            percentpaid = mean(percentpaid_effective)) |>
+  st_cast("LINESTRING") |>
+  mutate(cases = case_when(link == "F10-F11" ~ 
+                             "North Springs to Sandy Springs",
+                           link == "N3-N4" ~ 
+                             "North Avenue to Midtown",
+                           TRUE ~ "Other MARTA links")) |>
+  mutate(cases = factor(cases, levels = c("North Springs to Sandy Springs",
+                                             "North Avenue to Midtown",
+                                             "Other MARTA links"))) |>
+  st_set_crs("NAD83")
+
+MARTA_station <- here("2-rail-fares",
+     "data",
+     "StationAttributes_MARTA.csv") |>
+  read_csv() |>
+  st_as_sf(coords = c("long", "lat"))  |>
+  filter(id %in% MARTA_links_start$link_start |
+           id %in% MARTA_links_start$link_end) |>
+    mutate(cases = case_when(name == "North Springs" ~ paste0(name, " Station"),
+                           percentpaid_effective == max(percentpaid_effective) ~ 
+                             paste0(name, " Station"),
+                           TRUE ~ ""))  |>
+  st_set_crs("NAD83")
+
+case_stations = MARTA_station |>
+  filter(cases != "") |>
+    mutate(`Average fare` = paste0("$", formatC(costppx * percentpaid_effective, digits=2, format="f")),
+         `Annual cost` = paste0("$", prettyNum(cost_total, big.mark = " ")),
+         `Annual ridership` = prettyNum(passengers, big.mark = " ")) |>
+  rename(Station = cases) |>
+  st_join(tracts) |>
+  group_by(Station,
+         `Annual ridership`,
+         `Average fare`,
+         `Annual cost`) |>
+  summarise(`Median income of proximate residents` = paste0("$", prettyNum(round(mean(B06011_001E)), big.mark = " ")))
+
+case_links = MARTA_links |>
+  filter(cases != "Other MARTA links") |>
+  mutate(`Average fare` = paste0("$", formatC(costppx * percentpaid, digits=2, format="f")),
+         `Annual cost` = paste0("$", prettyNum(cost_total, big.mark = " ")),
+         `Annual ridership` = prettyNum(passengers, big.mark = " "),
+         `Length (miles)` = round(length, digits = 2)) |>
+  rename(Link = cases) |>
+  st_join(tracts) |>
+  group_by(Link,
+         `Length (miles)`,
+         `Annual ridership`,
+         `Average fare`,
+         `Annual cost`) |>
+  summarise(`Median income of proximate residents` = paste0("$", prettyNum(round(mean(B06011_001E)), big.mark = " ")))
+
+marta_bbox = st_bbox(MARTA_station)
+
+water <- tigris::area_water(state = "GA", county = c("Fulton", "DeKalb"))
+
+
+
+```
+
+
+```{r, echo=FALSE, warning=FALSE, fig.fullwidth = TRUE, fig.cap="BART system map with locations of links and stations of interest"}
+library(ggthemes)
+
+ggplot(MARTA_links) +
+  geom_sf(data = water,
+          color = NA,
+          fill = "lightgray") +
+  geom_sf(data = MARTA_station,
+          size = 1) +
+  geom_sf(aes(color = cases),
+          linewidth = 1) +
+  geom_sf_text(data = case_stations,
+                aes(label = Station),
+               hjust = 0,
+               vjust = 0.5,
+               nudge_x = 0.01,
+               nudge_y = 0,
+               size = 2,
+               color = "#E41A1C") +
+  geom_sf(data = case_stations,
+          color = "#E41A1C",
+          size = 1.5) +
+  theme_map() +
+  coord_sf(xlim = c(as.numeric(marta_bbox["xmin"]) - 0.03, 
+                    as.numeric(marta_bbox["xmax"]) + 0.4),
+           ylim = c(as.numeric(marta_bbox["ymin"] - 0.01),
+                    as.numeric(marta_bbox["ymax"]))) +
+  scale_color_manual(values = c("#4DAF4A",
+                               "#377EB8",
+                               "gray30")) +
+  theme(legend.key.height = unit(0.15, "in"),
+        legend.key.width = unit(0.3, "in"),
+        legend.title = element_blank(),
+        legend.background = element_blank(),
+        legend.key = element_rect(fill = NA),
+        legend.position = c(0.6, 0.75),
+        legend.text = element_text(size = 5))
+```
+
+Table 1 shows some basic data on the lines highlighted in Figure 1 and Table 2
+shows some basic data on the stations.
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+case_links |>
+  st_drop_geometry() |>
+  `rownames<-`(case_links$Link) |>
+  select(-Link) |>
+  t() |>
+  kable(align = c('r', 'r', 'l'),
+        caption = "Characteristics of BART links of interest") |>
+  kable_styling(full_width = TRUE)
+```
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+case_stations |>
+  st_drop_geometry() |>
+  `rownames<-`(case_links$Station) |>
+  select(-Station) |>
+  t() |>
+  kable(align = c('r', 'r', 'l'),
+        caption = "Characteristics of BART stations of interest") |>
+  kable_styling(full_width = TRUE)
+```
+
+
+
+
+# Questions for discussion
+
+1. For each of the highlighted links on the MARTA system:
+    a. What is the average cost per passenger-mile?
+    b. What is the average fare collected per passenger-mile?
+    c. What is the average subsidy per passenger-mile?
+    d. Assuming a person living near each link makes 500 trips on the link each year, 
+    what is the average subsidy the person living near each link receives in absolute 
+    dollars and as a percentage of the median income for the area where they live?
+    
+2. For each of the highlighted links on the BART system:
+    a. What is the average cost per passenger-mile?
+    b. What is the average fare collected per passenger-mile?
+    c. What is the average subsidy per passenger-mile?
+    d. Assuming a person living near each link makes 500 trips on the link each year, 
+    what is the average subsidy the person living near each link receives in absolute 
+    dollars and as a percentage of the median income for the area where they live?
+
+3. What additional data would you want in order to more fully evaluate the equity 
+of transit subsidies in these two regions?
